@@ -2,11 +2,32 @@ name: CI 9-stream
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - '*'
 
 jobs:
-  always_job:
-    name: Always run job
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Always run
-        run: echo "Dummy GitHub action that always runs and succeeds."
+      - name: Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install qemu-utils
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: |
+          cd 9-stream
+          chmod +x ./build.sh
+          ./build.sh
+      - name: Release
+        run: |
+          GIT_TAG=9-stream-$(date '+%Y%m%d')
+          GIT_TAG_HASH=$(git rev-parse --short HEAD)
+          GIT_TAG_MESSAGE=""
+          RELEASE_NOTES='!'"[](https://img.shields.io/github/downloads/${GITHUB_REPOSITORY}/${GIT_TAG}/total)"$'\n\n'"${GIT_TAG_MESSAGE}"
+          gh release create "${GIT_TAG}" --notes "${RELEASE_NOTES}" --title "CentOS ${GIT_TAG}" 9-stream/wsl/dist/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
