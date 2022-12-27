@@ -19,8 +19,9 @@ jobs:
 
       - name: Build
         run: |
-          chmod +x 6/build.sh
-          sh 6/build.sh
+          cd 6
+          chmod +x ./build.sh
+          ./build.sh
       - name: Release
         run: |
           GIT_TAG="${GITHUB_REF#refs/tags/}"
